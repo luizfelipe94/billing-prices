@@ -1,0 +1,10 @@
+CREATE TABLE prices (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    product VARCHAR(100) NOT NULL,
+    measure VARCHAR(100) NOT NULL,
+    size VARCHAR(100) NOT NULL,
+    price NUMERIC(10, 6) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);

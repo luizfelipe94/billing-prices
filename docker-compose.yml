@@ -1,0 +1,32 @@
+services:
+  # app:
+  #   build:
+  #     context: .
+  #   ports:
+  #     - "8081:8081"
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     - DATABASE_URL=postgres://postgres:password@db:5432/pricesdb?sslmode=disable
+  #   networks:
+  #     - billing-files
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pricesdb
+      POSTGRES_PORT: 5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - billing-files
+
+volumes:
+  postgres_data:
+
+networks:
+  billing-files:
