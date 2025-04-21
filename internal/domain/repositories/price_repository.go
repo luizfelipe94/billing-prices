@@ -6,4 +6,5 @@ import (
 
 type PriceRepository interface {
 	CreatePrice(price entities.Price) error
+	ListPrices() ([]entities.Price, error) // Adicionado
 }
