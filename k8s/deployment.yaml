@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-prices
+  labels:
+    app: billing-prices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-prices
+  template:
+    metadata:
+      labels:
+        app: billing-prices
+    spec:
+      containers:
+      - name: billing-prices
+        image: billing.localhost/billing-prices:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_BROKERS
+          value: "billing-kafka-bootstrap:9092"
+        - name: DATABASE_URL
+          value: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+        - name: PORT
+          value: "8080"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-prices
+  labels:
+    app: billing-prices
+spec:
+  selector:
+    app: billing-prices
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

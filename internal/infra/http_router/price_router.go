@@ -30,6 +30,10 @@ func (h *PriceRouter) CreatePrice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.createPriceHandler.Handle(r.Context(), price); err != nil {
+		if err.Error() == "price for product already exists" {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
 		http.Error(w, "Failed to create price", http.StatusInternalServerError)
 		return
 	}

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	models "github.com/luizfelipe94/billing-prices/internal/domain/entities"
 	"github.com/luizfelipe94/billing-prices/internal/domain/repositories"
@@ -29,6 +30,14 @@ func NewCreatePriceHandler(priceRepository repositories.PriceRepository, kafkaPr
 }
 
 func (h *CreatePriceHandler) Handle(ctx context.Context, command CreatePriceCommand) error {
+	existingPrice, err := h.PriceRepository.GetPriceByAttributes(command.Product, command.Measure, command.Size)
+	if err != nil {
+		return err
+	}
+
+	if existingPrice != nil {
+		return fmt.Errorf("price for product already exists")
+	}
 	price := models.Price{
 		Product: command.Product,
 		Measure: command.Measure,

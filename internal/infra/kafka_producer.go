@@ -15,7 +15,10 @@ func NewKafkaProducer(brokers []string, topic string) *KafkaProducer {
 	writer := kafka.NewWriter(kafka.WriterConfig{
 		Brokers: brokers,
 		Topic:   topic,
-		Async:   true,
+		Async:   false,
+		RequiredAcks: -1, // Wait for all replicas to acknowledge
+		BatchSize: 1,
+		BatchTimeout: 0,
 	})
 	return &KafkaProducer{Writer: writer}
 }

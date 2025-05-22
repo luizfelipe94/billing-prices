@@ -1,0 +1,17 @@
+# Ignorar arquivos de log
+*.log
+
+# Ignorar dependências locais
+node_modules/
+vendor/
+
+# Ignorar arquivos de configuração de IDEs
+.vscode/
+.idea/
+
+# Ignorar arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Ignorar variáveis de ambiente
+.env

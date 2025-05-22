@@ -1,7 +1,7 @@
 include .env
 export
 
-MIGRATE=migrate -path db/migrations -database "$(DB_URL)"
+MIGRATE=migrate -path db/migrations -database "$(DATABASE_URL)"
 
 .PHONY: migrate-up migrate-down migrate-force migrate-create
 

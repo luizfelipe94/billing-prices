@@ -39,3 +39,24 @@ func (r *PostgresPriceRepository) ListPrices() ([]entities.Price, error) {
 
 	return prices, nil
 }
+
+func (r *PostgresPriceRepository) GetPriceByAttributes(product, measure, size string) (*entities.Price, error) {
+	query := "SELECT product, measure, size, price FROM prices WHERE product = $1 AND measure = $2 AND size = $3"
+	row := r.DB.QueryRow(query, product, measure, size)
+
+	var price entities.Price
+	if err := row.Scan(&price.Product, &price.Measure, &price.Size, &price.Price); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &price, nil
+}
+
+func (r *PostgresPriceRepository) UpdatePrice(price entities.Price) error {
+	query := "UPDATE prices SET price = $1 WHERE product = $2 AND measure = $3 AND size = $4"
+	_, err := r.DB.Exec(query, price.Price, price.Product, price.Measure, price.Size)
+	return err
+}
