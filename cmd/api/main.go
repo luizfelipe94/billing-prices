@@ -13,6 +13,8 @@ import (
 	"github.com/luizfelipe94/billing-prices/internal/infra/http_router"
 	"github.com/luizfelipe94/billing-prices/internal/infra/persistence"
 	"github.com/rs/cors"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 func init() {
@@ -37,8 +39,18 @@ func main() {
 	kafkaProducerPrices := infra.NewKafkaProducer([]string{os.Getenv("KAFKA_BROKERS")}, "billing-usage-pricing")
 	defer kafkaProducerPrices.Close()
 
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		log.Fatalf("Error getting Kubernetes config: %v", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("Error creating Kubernetes client: %v", err)
+	}
+
 	var priceRepository repositories.PriceRepository = persistence.NewPostgresPriceRepository(internal.DB)
-	priceRouter := http_router.NewPriceRouter(priceRepository, internal.DB, kafkaProducerPrices)
+	priceRouter := http_router.NewPriceRouter(priceRepository, internal.DB, kafkaProducerPrices, clientset)
 
 	port := os.Getenv("PORT")
 	router := http.NewServeMux()
@@ -56,6 +68,7 @@ func main() {
 
 	router.HandleFunc("POST /api/v1/prices", priceRouter.CreatePrice)
 	router.HandleFunc("GET /api/v1/prices", priceRouter.ListPrices)
+	router.HandleFunc("POST /api/v1/turn-on-generate-data", priceRouter.TurnOnGenerateData)
 
 	fmt.Printf("Server running on port %s\n", port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), handler); err != nil {

@@ -8,17 +8,20 @@ import (
 	"github.com/luizfelipe94/billing-prices/internal/app"
 	"github.com/luizfelipe94/billing-prices/internal/domain/repositories"
 	"github.com/luizfelipe94/billing-prices/internal/infra"
+	"k8s.io/client-go/kubernetes"
 )
 
 type PriceRouter struct {
 	createPriceHandler *app.CreatePriceHandler
 	listPriceHandler   *app.ListPricesHandler
+	turnOnGenerateDataHandler *app.TurnOnGenerateDataHandler
 }
 
-func NewPriceRouter(repository repositories.PriceRepository, db *sql.DB, kafkaProducer *infra.KafkaProducer) *PriceRouter {
+func NewPriceRouter(repository repositories.PriceRepository, db *sql.DB, kafkaProducer *infra.KafkaProducer, k8sClient *kubernetes.Clientset) *PriceRouter {
 	return &PriceRouter{
 		createPriceHandler: app.NewCreatePriceHandler(repository, kafkaProducer),
 		listPriceHandler:   app.NewListPricesHandler(repository),
+		turnOnGenerateDataHandler: app.NewTurnOnGenerateDataHandler(k8sClient),
 	}
 }
 
@@ -51,4 +54,20 @@ func (h *PriceRouter) ListPrices(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(prices)
+}
+
+func (h *PriceRouter) TurnOnGenerateData(w http.ResponseWriter, r *http.Request) {
+	var command app.GenerateDataCommand
+	if err := json.NewDecoder(r.Body).Decode(&command); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.turnOnGenerateDataHandler.Handle(r.Context(), command); err != nil {
+		http.Error(w, "Failed to turn on data generation", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "data generation started"})
 }

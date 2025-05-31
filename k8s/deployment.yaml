@@ -1,3 +1,22 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-sa-binding
+subjects:
+  - kind: ServiceAccount
+    name: admin-sa
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,6 +33,7 @@ spec:
       labels:
         app: billing-prices
     spec:
+      serviceAccountName: admin-sa
       containers:
       - name: billing-prices
         image: billing.localhost/billing-prices:latest
